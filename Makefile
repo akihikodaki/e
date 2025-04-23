@@ -30,7 +30,7 @@ sha256sum: | $(BENCHMARKS:%=obj/traces/%.champsimtrace.xz)
 	sha256sum -b $(BENCHMARKS:%=obj/traces/%.champsimtrace.xz) > $@
 
 stats/%.json: | obj/bin/champsim obj/sha256sum obj/traces/%.champsimtrace.xz stats/
-	obj/bin/champsim -w 50000000 -i 200000000 --json $@ obj/traces/$*.champsimtrace.xz
+	obj/bin/champsim -w 50000000 -i 200000000 --json $@ obj/traces/$*.champsimtrace.xz > stats/$*.txt
 
 %/:
 	mkdir -p $*
