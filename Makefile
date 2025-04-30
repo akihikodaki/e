@@ -19,7 +19,7 @@ obj/.csconfig: ChampSim/champsim_config.json
 obj/bin/champsim: ChampSim/vcpkg_installed | obj/.csconfig
 	$(MAKE) -CChampSim OBJ_ROOT=../obj/.csconfig ../$@
 
-obj/sha256sum: benchmarks sha256sum $(BENCHMARKS:%=obj/traces/%.champsimtrace.xz)
+obj/sha256sum: sha256sum $(BENCHMARKS:%=obj/traces/%.champsimtrace.xz)
 	sha256sum -c $<
 	touch $@
 
