@@ -3,9 +3,10 @@
 BENCHMARKS := $(shell cat benchmarks)
 
 .DELETE_ON_ERROR:
-.PHONY: obj/bin/champsim stats
+.PHONY: phony
 
-stats: $(BENCHMARKS:%=stats/%.json)
+stats: phony $(BENCHMARKS:%=stats/%.json)
+phony:
 
 ChampSim/vcpkg/vcpkg: ChampSim/vcpkg/bootstrap-vcpkg.sh | obj/vcpkg/
 	VCPKG_DOWNLOADS="$$PWD/obj/vcpkg" $<
@@ -13,10 +14,13 @@ ChampSim/vcpkg/vcpkg: ChampSim/vcpkg/bootstrap-vcpkg.sh | obj/vcpkg/
 ChampSim/vcpkg_installed: ChampSim/vcpkg/vcpkg
 	export VCPKG_DOWNLOADS="$$PWD/obj/vcpkg" && cd ChampSim && vcpkg/vcpkg install
 
+champsim/%: ChampSim/vcpkg_installed phony | obj/.csconfig
+	$(MAKE) -CChampSim OBJ_ROOT=../obj/.csconfig $*
+
 obj/.csconfig: ChampSim/champsim_config.json
 	cd ChampSim && ./config.sh --prefix ../obj champsim_config.json
 
-obj/bin/champsim: ChampSim/vcpkg_installed | obj/.csconfig
+obj/bin/champsim: champsim/../$@
 	$(MAKE) -CChampSim OBJ_ROOT=../obj/.csconfig ../$@
 
 obj/sha256sum: sha256sum $(BENCHMARKS:%=obj/traces/%.champsimtrace.xz)
@@ -30,7 +34,7 @@ sha256sum: | $(BENCHMARKS:%=obj/traces/%.champsimtrace.xz)
 	sha256sum -b $(BENCHMARKS:%=obj/traces/%.champsimtrace.xz) > $@
 
 stats/%.json: | obj/bin/champsim obj/sha256sum obj/traces/%.champsimtrace.xz stats/
-	obj/bin/champsim -w 50000000 -i 200000000 --json $@ obj/traces/$*.champsimtrace.xz --kanata-skip 50000000 --kanata-max 1000000 --kanata >(gzip > stats/$*.log.gz) > stats/$*.txt
+	obj/bin/champsim -w 50000000 -i 200000000 --json $@ obj/traces/$*.champsimtrace.xz > stats/$*.txt
 
 %/:
 	mkdir -p $*
